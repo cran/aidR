@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>aidR: CareLink export format</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">aidR: CareLink export format</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(aidR)</span></code></pre></div>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>A CareLink (Medtronic) export is a <em>single</em>
+semicolon-delimited <code>.csv</code> (or <code>.xlsx</code>) file. The
+file is divided into <em>sections</em> separated by marker rows of the
+form <code>-------;MiniMed 780G MMT-1886;Pump;XXXXXXXXXX;-------</code>.
+Each section has its own header row and its own set of columns:</p>
+<pre><code>Last Name;First Name;Patient ID;System ID;Start Date;End Date;Device;MiniMed 780G MMT-1886;Hardware Version;A2.01;Firmware Version;8.13.2
+&quot;XXX&quot;;&quot;YYY&quot;;&quot;&quot;;&quot;&quot;;&quot;04.07.2026 00:00:00&quot;;&quot;05.07.2026 00:00:00&quot;;&quot;Serial Number&quot;;XXXXXXXXXX;Software Version;
+Patient DOB;;;;;;CGM;Guardian™ 4 Sensor
+
+
+-------;MiniMed 780G MMT-1886;Pump;XXXXXXXXXX;------- 
+Index;Date;Time;New Device Time;BG Source;BG Reading (mg/dL);Linked BG Meter ID;Basal Rate (U/h);Temp Basal Amount;Temp Basal Type;Temp Basal Duration (h:mm:ss);Bolus Type;Bolus Volume Selected (U);Bolus Volume Delivered (U);Bolus Duration (h:mm:ss);Prime Type;Prime Volume Delivered (U);Estimated Reservoir Volume after Fill (U);Alert;User Cleared Alerts;Suspend;Rewind;BWZ Estimate (U);BWZ Target High BG (mg/dL);BWZ Target Low BG (mg/dL);BWZ Carb Ratio (g/U);BWZ Insulin Sensitivity (mg/dL/U);BWZ Carb Input (grams);BWZ BG/SG Input (mg/dL);BWZ Correction Estimate (U);BWZ Food Estimate (U);BWZ Active Insulin (U);BWZ Status;Sensor Calibration BG (mg/dL);Sensor Glucose (mg/dL);ISIG Value;Event Marker;Bolus Number;Bolus Cancellation Reason;BWZ Unabsorbed Insulin Total (U);Final Bolus Estimate;Scroll Step Size;Insulin Action Curve Time;Sensor Calibration Rejected Reason;Preset Bolus;Bolus Source;BLE Network Device;Device Update Event;Network Device Associated Reason;Network Device Disassociated Reason;Network Device Disconnected Reason;Sensor Exception;Preset Temp Basal Name;Sensor State
+1,00000;2026/07/04;23:09:51;;;;;;;;;;;;;;;;;PERSONAL REMINDER;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+2,00000;2026/07/04;23:08:00;;;;;;;;;;;;;;;;PERSONAL REMINDER: vibration;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+3,00000;2026/07/04;22:48:05;;;;;;;;;Normal;1,9;1,9;;;;;;;;;;;;;;;;;;;;;;;;205;;;;;;;;CLOSED_LOOP_BG_CORRECTION_AND_FOOD_BOLUS;;;;;;;;</code></pre>
+</div>
+<div id="how-aidr-detects-this-format" class="section level2">
+<h2>How aidR detects this format</h2>
+<p><code>aidR</code> identifies a CareLink export by the keyword
+<code>MiniMed</code> in the first line.</p>
+</div>
+<div id="sections-and-the-data-types-they-produce" class="section level2">
+<h2>Sections and the data types they produce</h2>
+<p>To inspect the files, we parse the export with
+<code>clean = FALSE</code>, which returns the full information provided
+by CareLink:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">parse_data</span>(<span class="at">id =</span> <span class="st">&quot;1&quot;</span>, <span class="at">paths =</span> path, <span class="at">clean =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; Parsing data for id 1...</span></span></code></pre></div>
+<p>Because all information is present in one file, most of the parsing
+work happens up front: the file is split into sections, and the large
+“Pump” section is then split further into individual event types based
+on which columns are populated on each row.</p>
+<p>The list below describes the different sections and the information
+we can get from it.</p>
+<ul>
+<li><p><strong>Header block</strong> (first rows, before the first
+<code>-------</code>): patient, pump, and sensor information.
+<code>aidR</code> reads the pump name
+(e.g. <code>MiniMed 780G MMT-1886</code>) and sensor name
+(e.g. <code>Guardian™ 4 Sensor</code>) from here.</p></li>
+<li><p><strong>Pump section</strong>: split by event type into</p>
+<ul>
+<li>scheduled basal rates. Note: these are the <em>programmed</em> rates
+of the active basal pattern, i.e. what the pump would deliver in manual
+mode. They are not the basal insulin effectively delivered: in automated
+mode the pump adjusts delivery on its own, and in manual mode suspends
+and temporary basal rates override the schedule.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>scheduled_basal_rates)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>     Index           timestamp Basal <span class="fu">Rate</span> (U<span class="sc">/</span>h) Suspend Rewind duration_h</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">91</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">08</span><span class="sc">:</span><span class="dv">09</span>              <span class="fl">0.7</span>    <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>     <span class="cn">NA</span>  <span class="fl">1.8761111</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="dv">2</span> <span class="dv">89</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">02</span><span class="sc">:</span><span class="dv">00</span><span class="sc">:</span><span class="dv">43</span>              <span class="fl">0.8</span>    <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>     <span class="cn">NA</span>  <span class="fl">1.1141667</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="dv">3</span> <span class="dv">88</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">03</span><span class="sc">:</span><span class="dv">07</span><span class="sc">:</span><span class="dv">34</span>              <span class="fl">1.0</span>    <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>     <span class="cn">NA</span>  <span class="fl">0.9175000</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="dv">4</span> <span class="dv">87</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">04</span><span class="sc">:</span><span class="dv">02</span><span class="sc">:</span><span class="dv">37</span>              <span class="fl">0.9</span>    <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>     <span class="cn">NA</span>  <span class="fl">0.8872222</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="dv">5</span> <span class="dv">86</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">04</span><span class="sc">:</span><span class="dv">55</span><span class="sc">:</span><span class="dv">51</span>              <span class="fl">1.1</span>    <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>     <span class="cn">NA</span>  <span class="fl">0.9905556</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="dv">6</span> <span class="dv">85</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">05</span><span class="sc">:</span><span class="dv">55</span><span class="sc">:</span><span class="dv">17</span>              <span class="fl">1.2</span>    <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>     <span class="cn">NA</span>  <span class="fl">1.1341667</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>              pump_name</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="dv">1</span> MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="dv">2</span> MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="dv">3</span> MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="dv">4</span> MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="dv">5</span> MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="dv">6</span> MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span></code></pre></div>
+<ul>
+<li>boluses. Records whether a bolus was normal, square-wave, or
+dual-wave, along with the delivered volume and, for extended boluses,
+the duration.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>bolus)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 11</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  Index    timestamp           <span class="st">`</span><span class="at">Bolus Type</span><span class="st">`</span> <span class="st">`</span><span class="at">Bolus Volume Selected (U)</span><span class="st">`</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="sc">&lt;</span>chr<span class="sc">&gt;</span>    <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>chr<span class="sc">&gt;</span>                              <span class="er">&lt;</span>dbl<span class="sc">&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">69</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">29</span><span class="sc">:</span><span class="dv">11</span> Normal                               <span class="fl">5.1</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">68</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">47</span><span class="sc">:</span><span class="dv">56</span> Normal                               <span class="fl">5.1</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">66</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">37</span> Normal                               <span class="fl">2.4</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">65</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">32</span><span class="sc">:</span><span class="dv">56</span> Normal                               <span class="fl">2.4</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">63</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">15</span><span class="sc">:</span><span class="dv">45</span> Normal                               <span class="fl">2.9</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">62</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">55</span> Normal                               <span class="fl">2.9</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co"># ℹ 7 more variables: `Bolus Volume Delivered (U)` &lt;dbl&gt;,</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#   `Bolus Duration (h:mm:ss)` &lt;lgl&gt;, `Bolus Number` &lt;int&gt;,</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#   `Bolus Cancellation Reason` &lt;lgl&gt;, `Preset Bolus` &lt;lgl&gt;,</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#   `Bolus Source` &lt;chr&gt;, pump_name &lt;chr&gt;</span></span></code></pre></div>
+<ul>
+<li>bolus wizard (BWZ) entries, i.e. the carbohydrates communicated to
+the bolus calculator together with the resulting recommendation.</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>bwz)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>     Index           timestamp BWZ <span class="fu">Estimate</span> (U) BWZ Target High <span class="fu">BG</span> (mg<span class="sc">/</span>dL)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">70</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">29</span><span class="sc">:</span><span class="dv">11</span>              <span class="fl">5.1</span>                         <span class="cn">NA</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="dv">2</span> <span class="dv">67</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">37</span>              <span class="fl">2.4</span>                         <span class="cn">NA</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="dv">3</span> <span class="dv">64</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">15</span><span class="sc">:</span><span class="dv">45</span>              <span class="fl">2.9</span>                         <span class="cn">NA</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="dv">4</span> <span class="dv">61</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">52</span><span class="sc">:</span><span class="dv">49</span>              <span class="fl">3.0</span>                         <span class="cn">NA</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="dv">5</span> <span class="dv">58</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">15</span><span class="sc">:</span><span class="dv">08</span><span class="sc">:</span><span class="dv">09</span>              <span class="fl">3.1</span>                         <span class="cn">NA</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="dv">6</span> <span class="dv">41</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">22</span><span class="sc">:</span><span class="dv">13</span>              <span class="fl">2.8</span>                         <span class="cn">NA</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  BWZ Target Low <span class="fu">BG</span> (mg<span class="sc">/</span>dL) BWZ Carb <span class="fu">Ratio</span> (g<span class="sc">/</span>U) BWZ Carb <span class="fu">Input</span> (grams)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="dv">1</span>                        <span class="cn">NA</span>                  <span class="fl">8.0</span>                     <span class="dv">35</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="dv">2</span>                        <span class="cn">NA</span>                  <span class="fl">6.6</span>                     <span class="dv">15</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="dv">3</span>                        <span class="cn">NA</span>                  <span class="fl">6.6</span>                     <span class="dv">20</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="dv">4</span>                        <span class="cn">NA</span>                  <span class="fl">6.6</span>                     <span class="dv">25</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="dv">5</span>                        <span class="cn">NA</span>                  <span class="fl">7.2</span>                     <span class="dv">20</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="dv">6</span>                        <span class="cn">NA</span>                  <span class="fl">7.2</span>                     <span class="dv">18</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  BWZ Insulin <span class="fu">Sensitivity</span> (mg<span class="sc">/</span>dL<span class="sc">/</span>U) BWZ BG<span class="sc">/</span>SG <span class="fu">Input</span> (mg<span class="sc">/</span>dL)</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="dv">1</span>                                <span class="cn">NA</span>                     <span class="dv">253</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="dv">2</span>                                <span class="cn">NA</span>                       <span class="dv">0</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="dv">3</span>                                <span class="cn">NA</span>                     <span class="dv">216</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="dv">4</span>                                <span class="cn">NA</span>                     <span class="dv">195</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="dv">5</span>                                <span class="cn">NA</span>                     <span class="dv">117</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="dv">6</span>                                <span class="cn">NA</span>                     <span class="dv">106</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>  BWZ Correction <span class="fu">Estimate</span> (U) BWZ Food <span class="fu">Estimate</span> (U) BWZ Active <span class="fu">Insulin</span> (U)</span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="dv">1</span>                           <span class="dv">0</span>                   <span class="fl">5.1</span>                     <span class="cn">NA</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="dv">2</span>                           <span class="dv">0</span>                   <span class="fl">2.4</span>                     <span class="cn">NA</span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="dv">3</span>                           <span class="dv">0</span>                   <span class="fl">2.9</span>                     <span class="cn">NA</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="dv">4</span>                           <span class="dv">0</span>                   <span class="fl">3.0</span>                     <span class="cn">NA</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="dv">5</span>                           <span class="dv">0</span>                   <span class="fl">3.1</span>                     <span class="cn">NA</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="dv">6</span>                           <span class="dv">0</span>                   <span class="fl">2.8</span>                     <span class="cn">NA</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>  BWZ Status BWZ Unabsorbed Insulin <span class="fu">Total</span> (U) Final Bolus Estimate</span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="dv">1</span>  Delivered                               <span class="cn">NA</span>                   <span class="cn">NA</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="dv">2</span>  Delivered                               <span class="cn">NA</span>                   <span class="cn">NA</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="dv">3</span>  Delivered                               <span class="cn">NA</span>                   <span class="cn">NA</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="dv">4</span>  Delivered                               <span class="cn">NA</span>                   <span class="cn">NA</span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="dv">5</span>  Delivered                               <span class="cn">NA</span>                   <span class="cn">NA</span></span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="dv">6</span>  Delivered                               <span class="cn">NA</span>                   <span class="cn">NA</span></span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>  Scroll Step Size</span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="dv">1</span>               <span class="cn">NA</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="dv">2</span>               <span class="cn">NA</span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="dv">3</span>               <span class="cn">NA</span></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="dv">4</span>               <span class="cn">NA</span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a><span class="dv">5</span>               <span class="cn">NA</span></span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a><span class="dv">6</span>               <span class="cn">NA</span></span></code></pre></div>
+<ul>
+<li>self-monitored blood glucose (SMBG) entries.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>SMBG)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>     Index           timestamp           BG Source BG <span class="fu">Reading</span> (mg<span class="sc">/</span>dL)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">71</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">53</span><span class="sc">:</span><span class="dv">32</span>   BG_SENT_FOR_CALIB                <span class="dv">129</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="dv">2</span> <span class="dv">43</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">15</span><span class="sc">:</span><span class="dv">21</span> ENTERED_IN_BG_ENTRY                 <span class="dv">49</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  Linked BG Meter ID</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="dv">1</span>                 <span class="cn">NA</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="dv">2</span>                 <span class="cn">NA</span></span></code></pre></div>
+<ul>
+<li>alerts and alarms raised by the pump.</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>alerts)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>     Index           timestamp                       Alert User Cleared Alerts</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">82</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">58</span><span class="sc">:</span><span class="dv">08</span> ALERT BEFORE LOW<span class="sc">:</span> vibration                <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="dv">2</span> <span class="dv">81</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">02</span><span class="sc">:</span><span class="dv">49</span>     ALERT BEFORE LOW<span class="sc">:</span> siren                <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="dv">3</span> <span class="dv">80</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">05</span>                        <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>    ALERT BEFORE LOW</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="dv">4</span> <span class="dv">77</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">09</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">04</span> ALERT BEFORE LOW<span class="sc">:</span> vibration                <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="dv">5</span> <span class="dv">76</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">09</span><span class="sc">:</span><span class="dv">43</span><span class="sc">:</span><span class="dv">34</span>                        <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span>    ALERT BEFORE LOW</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="dv">6</span> <span class="dv">75</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">09</span><span class="sc">:</span><span class="dv">55</span><span class="sc">:</span><span class="dv">14</span>     ALERT ON LOW<span class="sc">:</span> vibration                <span class="sc">&lt;</span><span class="cn">NA</span><span class="sc">&gt;</span></span></code></pre></div>
+<ul>
+<li>prime events (tubing/cannula fills).</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>prime)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>     Index           timestamp   Prime Type Prime Volume <span class="fu">Delivered</span> (U)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">26</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">19</span><span class="sc">:</span><span class="dv">40</span><span class="sc">:</span><span class="dv">45</span> Cannula Fill                          <span class="dv">0</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  Estimated Reservoir Volume after <span class="fu">Fill</span> (U)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="dv">1</span>                                   <span class="fl">147.975</span></span></code></pre></div>
+<ul>
+<li>temp basal events.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>temp_basal)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>     Index           timestamp Temp Basal Amount Temp Basal Type</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">78</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">09</span><span class="sc">:</span><span class="dv">22</span><span class="sc">:</span><span class="dv">18</span>                <span class="dv">10</span>         Percent</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  Temp Basal <span class="fu">Duration</span> (h<span class="sc">:</span>mm<span class="sc">:</span>ss) Preset Temp Basal Name             pump_name</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="dv">1</span>                      <span class="dv">01</span><span class="sc">:</span><span class="dv">00</span><span class="sc">:</span><span class="dv">00</span>                 TEMP_2 MiniMed <span class="dv">780</span>G MMT<span class="dv">-1886</span></span></code></pre></div>
+<ul>
+<li>correction-bolus information (not present in this example).</li>
+</ul>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>corr_bolus_info)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="cn">NULL</span></span></code></pre></div>
+<ul>
+<li>sensor calibrations.</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>sensor_calibration)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>     Index           timestamp Sensor Calibration <span class="fu">BG</span> (mg<span class="sc">/</span>dL)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">42</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">20</span><span class="sc">:</span><span class="dv">12</span>                           <span class="dv">129</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  Sensor Calibration Rejected Reason</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="dv">1</span>                                 <span class="cn">NA</span></span></code></pre></div>
+<ul>
+<li>insulin action curve changes.</li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>insulin_action_curve)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>     Index  timestamp Insulin Action Curve Time</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">92</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span>                       <span class="dv">180</span></span></code></pre></div>
+<ul>
+<li>device change events.</li>
+</ul>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>device_changes)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>     Index           timestamp</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">47</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">16</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="dv">2</span> <span class="dv">46</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">03</span><span class="sc">:</span><span class="dv">00</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>                                    BLE Network Device</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="dv">1</span> Glucose Sensor <span class="fu">Transmitter</span> (XXXXXXXXXXX) was removed</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="dv">2</span>   Glucose Sensor <span class="fu">Transmitter</span> (XXXXXXXXXXX) was added</span></code></pre></div></li>
+<li><p><strong>Aggregated Auto Insulin Data section</strong>: daily
+aggregated insulin delivered in automated mode. Interestingly, this
+number does not match any of the total aggregates from the PDF export,
+so it is unclear what this actually refers to.</p></li>
+</ul>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>aggr_auto_insulin)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>     Index  timestamp Bolus Type Bolus Volume <span class="fu">Selected</span> (U)</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">93</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span>     Normal                    <span class="fl">20.494</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  Bolus Volume <span class="fu">Delivered</span> (U)             Bolus Source</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="dv">1</span>                     <span class="fl">20.494</span> CLOSED_LOOP_AUTO_INSULIN</span></code></pre></div>
+<ul>
+<li><strong>Sensor section</strong>: CGM data.</li>
+</ul>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>cgm)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>      Index           timestamp Sensor <span class="fu">Glucose</span> (mg<span class="sc">/</span>dL) ISIG Value</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="dv">1</span> <span class="dv">381</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">03</span><span class="sc">:</span><span class="dv">48</span><span class="sc">:</span><span class="dv">00</span>                    <span class="dv">109</span>      <span class="fl">19.80</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="dv">2</span> <span class="dv">380</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">03</span><span class="sc">:</span><span class="dv">53</span><span class="sc">:</span><span class="dv">00</span>                    <span class="dv">114</span>      <span class="fl">19.55</span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="dv">3</span> <span class="dv">379</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">03</span><span class="sc">:</span><span class="dv">58</span><span class="sc">:</span><span class="dv">00</span>                    <span class="dv">106</span>      <span class="fl">19.00</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="dv">4</span> <span class="dv">378</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">04</span><span class="sc">:</span><span class="dv">03</span><span class="sc">:</span><span class="dv">00</span>                     <span class="dv">96</span>      <span class="fl">17.32</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="dv">5</span> <span class="dv">377</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">04</span><span class="sc">:</span><span class="dv">08</span><span class="sc">:</span><span class="dv">00</span>                     <span class="dv">89</span>      <span class="fl">16.03</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="dv">6</span> <span class="dv">376</span>,<span class="dv">00000</span> <span class="dv">2026-07-04</span> <span class="dv">04</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">00</span>                     <span class="dv">81</span>      <span class="fl">15.37</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>         sensor_name</span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="dv">1</span> Guardian™ <span class="dv">4</span> Sensor</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="dv">2</span> Guardian™ <span class="dv">4</span> Sensor</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="dv">3</span> Guardian™ <span class="dv">4</span> Sensor</span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="dv">4</span> Guardian™ <span class="dv">4</span> Sensor</span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="dv">5</span> Guardian™ <span class="dv">4</span> Sensor</span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="dv">6</span> Guardian™ <span class="dv">4</span> Sensor</span></code></pre></div>
+</div>
+<div id="cleaning-files" class="section level2">
+<h2>Cleaning files</h2>
+<p>When <code>parse_data</code> is run with <code>clean = TRUE</code>,
+the cleaned data types are built from the following raw files and
+attributes:</p>
+<table>
+<colgroup>
+<col width="31%" />
+<col width="40%" />
+<col width="28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cleaned data type</th>
+<th>Used files</th>
+<th>Used attributes of <code>clean = FALSE</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cgm</code></td>
+<td><code>carelink_example.csv</code></td>
+<td><code>data$cgm</code></td>
+</tr>
+<tr class="even">
+<td><code>bolus</code></td>
+<td><code>carelink_example.csv</code></td>
+<td><code>data$bolus</code></td>
+</tr>
+<tr class="odd">
+<td><code>carbs</code></td>
+<td><code>carelink_example.csv</code></td>
+<td><code>data$bwz</code></td>
+</tr>
+<tr class="even">
+<td><code>SMBG</code></td>
+<td><code>carelink_example.csv</code></td>
+<td><code>data$SMBG</code></td>
+</tr>
+<tr class="odd">
+<td><code>total_bolus</code></td>
+<td><code>carelink_example.csv</code></td>
+<td><code>data$bolus</code></td>
+</tr>
+</tbody>
+</table>
+<p>Note that a CareLink export contains <strong>no usable basal
+data</strong> - <code>cgm</code>, <code>bolus</code>,
+<code>carbs</code>, and <code>SMBG</code> are the core data types
+available from this platform (see the notes below).</p>
+</div>
+<div id="notes" class="section level2">
+<h2>Notes</h2>
+<ul>
+<li>CGM and SMBG values are reported in mg/dL or mmol/L depending on
+account settings; <code>aidR</code> converts to mg/dL
+automatically.</li>
+<li><code>timezone_offset</code> is always <code>NA</code>, since
+CareLink exports report only local (wall-clock) time.</li>
+<li>CareLink does report a daily insulin aggregate, but this number does
+not match any of the daily aggregates displayed in a PDF export. It is
+unclear what this number refers to, and <code>aidR</code> therefore does
+not use this number. Therefore, <code>total_bolus</code> is summed from
+the cleaned <code>bolus</code> data and carries
+<code>source = &quot;summed&quot;</code>.</li>
+<li>The basal rates from the Pump section are the <em>scheduled</em>
+basal rates (possibly interrupted by reservoir changes and rewinds), and
+not the basal insulin effectively delivered. <code>aidR</code> therefore
+does not use them to build a cleaned <code>basal</code> data type, and
+consequently reports no <code>total_basal</code> for CareLink. If you
+need the schedule itself, it is available from
+<code>parse_data(clean = FALSE)</code> as
+<code>data$scheduled_basal_rates</code>.</li>
+<li><code>link_id</code> is always <code>NA</code> for
+<code>bolus</code> and <code>carbs</code>: the export does not record
+which carbohydrate entry triggered which bolus. Matching them by
+timestamp and amount is not implemented.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

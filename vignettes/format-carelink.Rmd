@@ -1,0 +1,151 @@
+---
+title: "aidR: CareLink export format"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{aidR: CareLink export format}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message = FALSE}
+library(aidR)
+```
+
+## Overview
+
+```{r, include=FALSE}
+path <- system.file("extdata", "carelink_example.csv", package = "aidR")
+```
+
+A CareLink (Medtronic) export is a *single* semicolon-delimited `.csv` (or `.xlsx`) file. The file is divided into *sections* separated by marker rows of the form `-------;MiniMed 780G MMT-1886;Pump;XXXXXXXXXX;-------`. Each section has its own header row and its own set of columns:
+
+```{r, comment = "", echo = FALSE}
+writeLines(readLines(path, n = 10))
+```
+
+## How aidR detects this format
+
+`aidR` identifies a CareLink export by the keyword `MiniMed` in the first line.
+
+## Sections and the data types they produce
+
+To inspect the files, we parse the export with `clean = FALSE`, which returns the full information provided by CareLink:
+
+```{r}
+data <- parse_data(id = "1", paths = path, clean = FALSE)
+```
+
+Because all information is present in one file, most of the parsing work happens up front: the file is split into sections, and the large "Pump" section is then split further into individual event types based on which columns are populated on each row. 
+
+The list below describes the different sections and the information we can get from it.
+
+- **Header block** (first rows, before the first `-------`): patient, pump, and sensor information. `aidR` reads the pump name (e.g. `MiniMed 780G MMT-1886`) and sensor name (e.g. `Guardian™ 4 Sensor`) from here.
+
+- **Pump section**: split by event type into
+
+  - scheduled basal rates. Note: these are the *programmed* rates of the active basal pattern, i.e. what the pump would deliver in manual mode. They are not the basal insulin effectively delivered: in automated mode the pump adjusts delivery on its own, and in manual mode suspends and temporary basal rates override the schedule.
+
+  ```{r, comment=""}
+  head(data$scheduled_basal_rates)
+  ```
+
+  - boluses. Records whether a bolus was normal, square-wave, or dual-wave, along with the delivered volume and, for extended boluses, the duration.
+
+  ```{r, comment=""}
+  head(data$bolus)
+  ```
+
+  - bolus wizard (BWZ) entries, i.e. the carbohydrates communicated to the bolus calculator together with the resulting recommendation.
+
+  ```{r, comment=""}
+  head(data$bwz)
+  ```
+
+  - self-monitored blood glucose (SMBG) entries.
+
+  ```{r, comment=""}
+  head(data$SMBG)
+  ```
+
+  - alerts and alarms raised by the pump.
+
+  ```{r, comment=""}
+  head(data$alerts)
+  ```
+
+  - prime events (tubing/cannula fills).
+
+  ```{r, comment=""}
+  head(data$prime)
+  ```
+
+  - temp basal events.
+
+  ```{r, comment=""}
+  head(data$temp_basal)
+  ```
+
+  - correction-bolus information (not present in this example).
+
+  ```{r, comment=""}
+  head(data$corr_bolus_info)
+  ```
+
+  - sensor calibrations.
+
+  ```{r, comment=""}
+  head(data$sensor_calibration)
+  ```
+
+  - insulin action curve changes.
+
+  ```{r, comment=""}
+  head(data$insulin_action_curve)
+  ```
+
+  - device change events.
+
+  ```{r, comment=""}
+  head(data$device_changes)
+  ```
+
+- **Aggregated Auto Insulin Data section**: daily aggregated insulin delivered in automated mode. Interestingly, this number does not match any of the total aggregates from the PDF export, so it is unclear what this actually refers to.
+
+```{r, comment=""}
+head(data$aggr_auto_insulin)
+```
+
+- **Sensor section**: CGM data.
+
+```{r, comment=""}
+head(data$cgm)
+```
+
+## Cleaning files
+
+When `parse_data` is run with `clean = TRUE`, the cleaned data types are built from the following raw files and attributes:
+
+| Cleaned data type |  Used files            | Used attributes of `clean = FALSE` |
+|-------------------|------------------------|-----------------|
+| `cgm`             | `carelink_example.csv` | `data$cgm`      |
+| `bolus`           | `carelink_example.csv` | `data$bolus`    |
+| `carbs`           | `carelink_example.csv` | `data$bwz`      |
+| `SMBG`            | `carelink_example.csv` | `data$SMBG`     |
+| `total_bolus`     | `carelink_example.csv` | `data$bolus`    |
+
+Note that a CareLink export contains **no usable basal data** - `cgm`, `bolus`, `carbs`, and `SMBG` are the core data types available from this platform (see the notes below).
+
+## Notes
+
+- CGM and SMBG values are reported in mg/dL or mmol/L depending on account settings; `aidR` converts to mg/dL automatically.
+- `timezone_offset` is always `NA`, since CareLink exports report only local (wall-clock) time.
+- CareLink does report a daily insulin aggregate, but this number does not match any of the daily aggregates displayed in a PDF export. It is unclear what this number refers to, and `aidR` therefore does not use this number. Therefore, `total_bolus` is summed from the cleaned `bolus` data and carries `source = "summed"`.
+- The basal rates from the Pump section are the *scheduled* basal rates (possibly interrupted by reservoir changes and rewinds), and not the basal insulin effectively delivered. `aidR` therefore does not use them to build a cleaned `basal` data type, and consequently reports no `total_basal` for CareLink. If you need the schedule itself, it is available from `parse_data(clean = FALSE)` as `data$scheduled_basal_rates`.
+- `link_id` is always `NA` for `bolus` and `carbs`: the export does not record which carbohydrate entry triggered which bolus. Matching them by timestamp and amount is not implemented.

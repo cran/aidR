@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>aidR: Tidepool export format</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">aidR: Tidepool export format</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(aidR)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(readxl)</span></code></pre></div>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>A Tidepool export is a <em>single</em> multi-sheet <code>.xlsx</code>
+workbook with one sheet per data type. The sheets <code>Basal</code> and
+<code>Bolus</code> are always expected to be present; the remaining
+sheets (<code>CGM</code>, <code>Device Event</code>, <code>Food</code>,
+<code>Bolus Calculator</code>, <code>Basal Schedules</code>,
+<code>BG Targets</code>, <code>Carb Ratios</code>,
+<code>Insulin Sensitivities</code>, <code>SMBG</code>,
+<code>Upload</code>) are optional and are read only if the workbook
+contains them.</p>
+<p>Because Tidepool aggregates data uploaded from many different pumps,
+meters, and CGM devices, the exact set of sheets and the columns within
+them vary between exports. Sheet names and headers, however, are always
+in English. This example shows a CGM sheet:</p>
+<pre><code># A tibble: 36,873 × 14
+   `Zulu Time`         `Local Time`        `Device Time`      
+   &lt;dttm&gt;              &lt;dttm&gt;              &lt;dttm&gt;             
+ 1 2019-05-31 18:21:14 2019-05-31 14:21:14 2019-05-31 14:21:14
+ 2 2019-05-31 18:16:14 2019-05-31 14:16:14 2019-05-31 14:16:14
+ 3 2019-05-31 18:11:14 2019-05-31 14:11:14 2019-05-31 14:11:14
+ 4 2019-05-31 18:06:14 2019-05-31 14:06:14 2019-05-31 14:06:14
+ 5 2019-05-31 18:01:14 2019-05-31 14:01:14 2019-05-31 14:01:14
+ 6 2019-05-31 17:56:14 2019-05-31 13:56:14 2019-05-31 13:56:14
+ 7 2019-05-31 17:51:14 2019-05-31 13:51:14 2019-05-31 13:51:14
+ 8 2019-05-31 17:46:14 2019-05-31 13:46:14 2019-05-31 13:46:14
+ 9 2019-05-31 17:41:14 2019-05-31 13:41:14 2019-05-31 13:41:14
+10 2019-05-31 17:36:15 2019-05-31 13:36:15 2019-05-31 13:36:15
+# ℹ 36,863 more rows
+# ℹ 11 more variables: `Tidepool Data Type` &lt;chr&gt;, Value &lt;dbl&gt;, Units &lt;chr&gt;,
+#   `Timezone Offset` &lt;dbl&gt;, `Conversion Offset` &lt;dbl&gt;,
+#   `Clock Drift Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;, Id &lt;chr&gt;, `Upload Id` &lt;chr&gt;,
+#   Payload &lt;chr&gt;, Annotations &lt;chr&gt;</code></pre>
+</div>
+<div id="how-aidr-detects-this-format" class="section level2">
+<h2>How aidR detects this format</h2>
+<p><code>aidR</code> checks that the file is a readable Excel workbook
+containing a sheet named <code>Basal</code> and a sheet named
+<code>Bolus</code>. Because Tidepool’s sheet names are
+language-independent, each sheet is then looked up by name; any optional
+sheet that is absent simply yields no data.</p>
+</div>
+<div id="sheets-and-the-data-types-they-produce" class="section level2">
+<h2>Sheets and the data types they produce</h2>
+<p>To inspect the raw data, we parse the export with
+<code>clean = FALSE</code>, which returns the full information provided
+by Tidepool:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">parse_data</span>(<span class="at">id =</span> <span class="st">&quot;1&quot;</span>, <span class="at">paths =</span> path, <span class="at">clean =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; Parsing data for id 1...</span></span></code></pre></div>
+<p>Each entry below describes one sheet and the information it
+provides.</p>
+<ul>
+<li><strong><code>CGM</code></strong>: CGM data.</li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>cgm)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 14</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">11</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">11</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">11</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">06</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">06</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">06</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-31</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">56</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">56</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">56</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co"># ℹ 11 more variables: `Tidepool Data Type` &lt;chr&gt;, Value &lt;dbl&gt;, Units &lt;chr&gt;,</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#   `Timezone Offset` &lt;dbl&gt;, `Conversion Offset` &lt;dbl&gt;,</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#   `Clock Drift Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;, Id &lt;chr&gt;, `Upload Id` &lt;chr&gt;,</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#   Payload &lt;chr&gt;, Annotations &lt;chr&gt;</span></span></code></pre></div>
+<ul>
+<li><strong><code>Basal</code></strong>: basal rates, including their
+duration.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>basal)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 22</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">17</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">17</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">17</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-31</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">17</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">17</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">17</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-31</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-31</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">01</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-31</span> <span class="dv">16</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-31</span> <span class="dv">16</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">15</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co"># ℹ 19 more variables: `Tidepool Data Type` &lt;chr&gt;, `Delivery Type` &lt;chr&gt;,</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#   `Duration (mins)` &lt;dbl&gt;, `Expected Duration (mins)` &lt;lgl&gt;, Rate &lt;dbl&gt;,</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#   Percent &lt;dbl&gt;, `Schedule Name` &lt;chr&gt;, `Suppressed Schedule Name` &lt;lgl&gt;,</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#   `Suppressed Delivery Type` &lt;chr&gt;, `Suppressed Type` &lt;chr&gt;,</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#   `Suppressed Rate` &lt;dbl&gt;, `Timezone Offset` &lt;dbl&gt;,</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#   `Conversion Offset` &lt;dbl&gt;, `Clock Drift Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;,</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#   Id &lt;chr&gt;, `Upload Id` &lt;chr&gt;, Payload &lt;chr&gt;, Annotations &lt;chr&gt;</span></span></code></pre></div>
+<ul>
+<li><strong><code>Bolus</code></strong>: insulin boluses, including the
+amounts delivered as a normal bolus and as an extended bolus.</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>bolus)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 19</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">27</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">27</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">27</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-30</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">41</span> <span class="dv">2019-05-30</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">41</span> <span class="dv">2019-05-30</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">41</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-30</span> <span class="dv">15</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">13</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">13</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">13</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-30</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-30</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-30</span> <span class="dv">01</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">46</span> <span class="dv">2019-05-29</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">46</span> <span class="dv">2019-05-29</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">46</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-30</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">27</span><span class="sc">:</span><span class="dv">12</span> <span class="dv">2019-05-29</span> <span class="dv">20</span><span class="sc">:</span><span class="dv">27</span><span class="sc">:</span><span class="dv">12</span> <span class="dv">2019-05-29</span> <span class="dv">20</span><span class="sc">:</span><span class="dv">27</span><span class="sc">:</span><span class="dv">12</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co"># ℹ 16 more variables: `Tidepool Data Type` &lt;chr&gt;, `Sub Type` &lt;chr&gt;,</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#   `Duration (mins)` &lt;dbl&gt;, `Expected Duration (mins)` &lt;dbl&gt;, Extended &lt;dbl&gt;,</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#   `Expected Extended` &lt;dbl&gt;, Normal &lt;dbl&gt;, `Expected Normal` &lt;dbl&gt;,</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#   `Timezone Offset` &lt;dbl&gt;, `Conversion Offset` &lt;dbl&gt;,</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#   `Clock Drift Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;, Id &lt;chr&gt;, `Upload Id` &lt;chr&gt;,</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#   Payload &lt;chr&gt;, Annotations &lt;lgl&gt;</span></span></code></pre></div>
+<ul>
+<li><strong><code>SMBG</code></strong>: self-monitored blood glucose
+(SMBG).</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>SMBG)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 15</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">22</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">22</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">22</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-30</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">36</span> <span class="dv">2019-05-30</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">36</span> <span class="dv">2019-05-30</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">36</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-30</span> <span class="dv">15</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">08</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">08</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">08</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-30</span> <span class="dv">15</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">05</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">05</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">05</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">37</span> <span class="dv">2019-05-30</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">37</span> <span class="dv">2019-05-30</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">37</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-30</span> <span class="dv">01</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">35</span> <span class="dv">2019-05-29</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">35</span> <span class="dv">2019-05-29</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">35</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co"># ℹ 12 more variables: `Tidepool Data Type` &lt;chr&gt;, `Sub Type` &lt;chr&gt;,</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#   Value &lt;dbl&gt;, Units &lt;chr&gt;, `Timezone Offset` &lt;dbl&gt;,</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#   `Conversion Offset` &lt;dbl&gt;, `Clock Drift Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;,</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#   Id &lt;chr&gt;, `Upload Id` &lt;chr&gt;, Payload &lt;chr&gt;, Annotations &lt;lgl&gt;</span></span></code></pre></div>
+<ul>
+<li><strong><code>Bolus Calculator</code></strong> or
+<strong><code>Food</code></strong>: carbohydrate intake. Tidepool
+exports carry one or the other depending on the uploading device, never
+both, and <code>aidR</code> uses whichever is present. If both or
+neither appear, <code>aidR</code> raises an error. The example contains
+a <code>Bolus Calculator</code> sheet:</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>bolus_calculator)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 26</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">27</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">27</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">42</span><span class="sc">:</span><span class="dv">27</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-30</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">41</span> <span class="dv">2019-05-30</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">41</span> <span class="dv">2019-05-30</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">41</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-30</span> <span class="dv">15</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">13</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">13</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">36</span><span class="sc">:</span><span class="dv">13</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-30</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-30</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-30</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">13</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-30</span> <span class="dv">01</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">46</span> <span class="dv">2019-05-29</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">46</span> <span class="dv">2019-05-29</span> <span class="dv">21</span><span class="sc">:</span><span class="dv">46</span><span class="sc">:</span><span class="dv">46</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-30</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">27</span><span class="sc">:</span><span class="dv">12</span> <span class="dv">2019-05-29</span> <span class="dv">20</span><span class="sc">:</span><span class="dv">27</span><span class="sc">:</span><span class="dv">12</span> <span class="dv">2019-05-29</span> <span class="dv">20</span><span class="sc">:</span><span class="dv">27</span><span class="sc">:</span><span class="dv">12</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co"># ℹ 23 more variables: `Tidepool Wizard Type` &lt;chr&gt;, `Bg Input` &lt;dbl&gt;,</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#   `Insulin Sensitivity` &lt;dbl&gt;, `Carb Input` &lt;dbl&gt;,</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#   `Insulin Carb Ratio` &lt;dbl&gt;, `Insulin On Board` &lt;dbl&gt;, Bolus &lt;chr&gt;,</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#   Units &lt;chr&gt;, `Recommended Carb` &lt;dbl&gt;, `Recommended Correction` &lt;dbl&gt;,</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#   `Recommended Net` &lt;dbl&gt;, `BG Target` &lt;dbl&gt;, `BG Target High` &lt;lgl&gt;,</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#   `BG Target Low` &lt;lgl&gt;, `BG Target Range Setting` &lt;lgl&gt;,</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#   `Timezone Offset` &lt;dbl&gt;, `Conversion Offset` &lt;dbl&gt;, …</span></span></code></pre></div>
+<ul>
+<li><strong><code>Device Event</code></strong>: device-level events such
+as alarms, suspends, resumes, and cannula/reservoir changes.</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>device_event)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 28</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">17</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">13</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-31</span> <span class="dv">16</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">14</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">14</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-31</span> <span class="dv">16</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">16</span><span class="sc">:</span><span class="dv">15</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-31</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">43</span><span class="sc">:</span><span class="dv">48</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">43</span><span class="sc">:</span><span class="dv">48</span> <span class="dv">2019-05-31</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">43</span><span class="sc">:</span><span class="dv">48</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-31</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">07</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">15</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-31</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">06</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">06</span><span class="sc">:</span><span class="dv">06</span><span class="sc">:</span><span class="dv">15</span> <span class="dv">2019-05-31</span> <span class="dv">06</span><span class="sc">:</span><span class="dv">06</span><span class="sc">:</span><span class="dv">15</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co"># ℹ 25 more variables: `Tidepool Data Type` &lt;chr&gt;, `Sub Type` &lt;chr&gt;,</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#   `Alarm Type` &lt;chr&gt;, Value &lt;lgl&gt;, Units &lt;lgl&gt;, `Duration (mins)` &lt;dbl&gt;,</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#   `Expected Duration (mins)` &lt;lgl&gt;, `Change From` &lt;chr&gt;, `Change To` &lt;chr&gt;,</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#   `Change Agent` &lt;chr&gt;, From &lt;lgl&gt;, To &lt;lgl&gt;, Status &lt;chr&gt;,</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#   `Prime Target` &lt;chr&gt;, Volume &lt;dbl&gt;, `Reason Suspended` &lt;chr&gt;,</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#   `Reason Resumed` &lt;chr&gt;, `Timezone Offset` &lt;dbl&gt;, `Conversion Offset` &lt;dbl&gt;,</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#   `Clock Drift Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;, Id &lt;chr&gt;, …</span></span></code></pre></div>
+<ul>
+<li><strong><code>Basal Schedules</code></strong>,
+<strong><code>BG Targets</code></strong>,
+<strong><code>Carb Ratios</code></strong>,
+<strong><code>Insulin Sensitivities</code></strong>: pump therapy
+settings as they changed over time.</li>
+</ul>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>basal_schedules)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 22</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span>      </span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">40</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co"># ℹ 19 more variables: `Tidepool Data Type` &lt;chr&gt;, `Active Schedule` &lt;chr&gt;,</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#   `Schedule Name` &lt;chr&gt;, `Basal Schedule Start` &lt;dttm&gt;,</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#   `Basal Schedule Rate` &lt;dbl&gt;, `Timezone Offset` &lt;dbl&gt;,</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#   `Conversion Offset` &lt;dbl&gt;, `Clock Drift Offset` &lt;lgl&gt;, `Device Id` &lt;chr&gt;,</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#   Id &lt;chr&gt;, `Upload Id` &lt;chr&gt;, Bolus &lt;chr&gt;, Manufacturers &lt;chr&gt;, Model &lt;int&gt;,</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#   `Serial Number` &lt;int&gt;, Payload &lt;lgl&gt;, Annotations &lt;lgl&gt;, Basal &lt;lgl&gt;,</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#   Display &lt;lgl&gt;</span></span></code></pre></div>
+<ul>
+<li><strong><code>Upload</code></strong>: metadata about each upload to
+Tidepool (device, time, software version), useful for tracing which
+device a given stretch of data came from.</li>
+</ul>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>upload)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co"># A tibble: 6 × 20</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="st">`</span><span class="at">Zulu Time</span><span class="st">`</span>         <span class="st">`</span><span class="at">Local Time</span><span class="st">`</span>        <span class="st">`</span><span class="at">Device Time</span><span class="st">`</span> <span class="st">`</span><span class="at">Computer Time</span><span class="st">`</span>    </span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="sc">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>              <span class="er">&lt;</span>lgl<span class="sc">&gt;</span>         <span class="er">&lt;</span>dttm<span class="sc">&gt;</span>             </span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="dv">1</span> <span class="dv">2019-05-31</span> <span class="dv">18</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">54</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">54</span> <span class="cn">NA</span>            <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">21</span><span class="sc">:</span><span class="dv">54</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="dv">2</span> <span class="dv">2019-05-31</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">11</span> <span class="dv">2019-05-31</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">11</span> <span class="cn">NA</span>            <span class="dv">2019-05-31</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">11</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="dv">3</span> <span class="dv">2019-05-23</span> <span class="dv">16</span><span class="sc">:</span><span class="dv">12</span><span class="sc">:</span><span class="dv">18</span> <span class="dv">2019-05-23</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">12</span><span class="sc">:</span><span class="dv">18</span> <span class="cn">NA</span>            <span class="dv">2019-05-23</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">12</span><span class="sc">:</span><span class="dv">18</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="dv">4</span> <span class="dv">2019-05-23</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">32</span><span class="sc">:</span><span class="dv">27</span> <span class="dv">2019-05-23</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">32</span><span class="sc">:</span><span class="dv">27</span> <span class="cn">NA</span>            <span class="dv">2019-05-23</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">32</span><span class="sc">:</span><span class="dv">27</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="dv">5</span> <span class="dv">2019-05-13</span> <span class="dv">15</span><span class="sc">:</span><span class="dv">11</span><span class="sc">:</span><span class="dv">32</span> <span class="dv">2019-05-13</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">11</span><span class="sc">:</span><span class="dv">32</span> <span class="cn">NA</span>            <span class="dv">2019-05-13</span> <span class="dv">11</span><span class="sc">:</span><span class="dv">11</span><span class="sc">:</span><span class="dv">32</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="dv">6</span> <span class="dv">2019-05-10</span> <span class="dv">14</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">01</span> <span class="dv">2019-05-10</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">01</span> <span class="cn">NA</span>            <span class="dv">2019-05-10</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">41</span><span class="sc">:</span><span class="dv">01</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co"># ℹ 16 more variables: Timezone &lt;chr&gt;, `Time Processing` &lt;chr&gt;,</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#   `Tidepool Data Type` &lt;chr&gt;, Version &lt;chr&gt;, `Device Serial Number` &lt;chr&gt;,</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#   `Device Model` &lt;chr&gt;, `Device Manufacturers` &lt;chr&gt;, `Device Tags` &lt;chr&gt;,</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#   `Timezone Offset` &lt;dbl&gt;, `Conversion Offset` &lt;dbl&gt;, `Device Id` &lt;chr&gt;,</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#   Id &lt;chr&gt;, `By User` &lt;chr&gt;, `Upload Id` &lt;chr&gt;, Payload &lt;lgl&gt;,</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#   Annotations &lt;lgl&gt;</span></span></code></pre></div>
+</div>
+<div id="cleaning-files" class="section level2">
+<h2>Cleaning files</h2>
+<p>When <code>parse_data</code> is run with <code>clean = TRUE</code>,
+the cleaned data types are built from the following sheets and
+attributes:</p>
+<table>
+<colgroup>
+<col width="26%" />
+<col width="49%" />
+<col width="23%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cleaned data type</th>
+<th>Used sheets</th>
+<th>Used attributes from <code>clean = FALSE</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>cgm</code></td>
+<td><code>CGM</code></td>
+<td><code>data$cgm</code></td>
+</tr>
+<tr class="even">
+<td><code>basal</code></td>
+<td><code>Basal</code></td>
+<td><code>data$basal</code></td>
+</tr>
+<tr class="odd">
+<td><code>bolus</code></td>
+<td><code>Bolus</code></td>
+<td><code>data$bolus</code></td>
+</tr>
+<tr class="even">
+<td><code>carbs</code></td>
+<td><code>Bolus Calculator</code> or <code>Food</code></td>
+<td><code>data$carbs</code></td>
+</tr>
+<tr class="odd">
+<td><code>SMBG</code></td>
+<td><code>SMBG</code></td>
+<td><code>data$SMBG</code></td>
+</tr>
+<tr class="even">
+<td><code>total_basal</code></td>
+<td><code>Basal</code></td>
+<td><code>data$basal</code></td>
+</tr>
+<tr class="odd">
+<td><code>total_bolus</code></td>
+<td><code>Bolus</code></td>
+<td><code>data$bolus</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="notes" class="section level2">
+<h2>Notes</h2>
+<ul>
+<li>CGM and SMBG values are reported in mg/dL or mmol/L depending on the
+account settings; <code>aidR</code> converts them to mg/dL
+automatically.</li>
+<li>Timestamps carry a per-row UTC offset, so
+<code>timezone_offset</code> is populated (unlike most other export
+formats, where only local wall-clock time is available).</li>
+<li>Tidepool reports no daily insulin aggregate, so
+<code>total_basal</code> and <code>total_bolus</code> are summed from
+the cleaned <code>basal</code> and <code>bolus</code> data and carry
+<code>source = &quot;summed&quot;</code>.</li>
+<li>If carbohydrates are taken from the <code>Bolus Calculator</code>
+sheet, its <code>Bolus</code> column can be matched to the the
+<code>Id</code> column in the <code>Bolus</code> sheet to link bolus and
+carbohydrate entries. Carbohydrates from the <code>Food</code> sheet
+cannot be matched to boluses, and their <code>link_id</code> is
+<code>NA</code>.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>aidR: Tandem Source export format</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">aidR: Tandem Source export format</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(aidR)</span></code></pre></div>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>A Tandem Source export is a folder (possibly zipped) containing CSV
+files for several data types. Filenames combine the participant, serial
+number, and export date with a data-type suffix, for example:</p>
+<pre><code>[1] &quot;tandem_source_example/XXX_1111111_10Mar2026_1111-BG.csv&quot;                   
+[2] &quot;tandem_source_example/XXX_1111111_10Mar2026_1111-Basal-doses.csv&quot;          
+[3] &quot;tandem_source_example/XXX_1111111_10Mar2026_1111-Bolus.csv&quot;                
+[4] &quot;tandem_source_example/XXX_1111111_10Mar2026_1111-CGM.csv&quot;                  
+[5] &quot;tandem_source_example/XXX_1111111_10Mar2026_1111-Hourly-basal-delivery.csv&quot;</code></pre>
+<p>Each file records the device type
+(e.g. <code>Tandem Mobi™ System</code>) and serial number on every
+row:</p>
+<pre><code>Device Type,Serial Number,Description,Event Date Time,Readings (mg/dL)
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:04:33,131
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:09:32,126
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:14:33,125
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:19:33,120
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:24:33,116
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:29:33,111
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:34:33,107
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:39:32,105
+⁦Tandem Mobi™⁩ System,1111111,EGV,2026-03-05T00:44:32,104</code></pre>
+</div>
+<div id="how-aidr-detects-this-format" class="section level2">
+<h2>How aidR detects this format</h2>
+<p>Because the headers in a Tandem Source export are language-specific,
+<code>aidR</code> cannot identify a file from its header names. It
+relies instead on the <em>structure</em> of the file, and distinguishes
+between data types by the expected number of columns, which columns are
+numeric, and, where available, a language-independent keyword such as
+<code>&quot;Tandem&quot;</code> or <code>&quot;t:slim X2&quot;</code> for the files
+containing CGM, SMBG and basal rates, as well as <code>&quot;Bolus&quot;</code>
+for the file containing the bolus data.</p>
+</div>
+<div id="files-and-the-data-types-they-produce" class="section level2">
+<h2>Files and the data types they produce</h2>
+<p>To inspect the raw files, we parse the export with
+<code>clean = FALSE</code>, which returns the full information provided
+by Tandem Source:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">parse_data</span>(<span class="at">id =</span> <span class="st">&quot;1&quot;</span>, <span class="at">paths =</span> path, <span class="at">clean =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; Parsing data for id 1...</span></span></code></pre></div>
+<p>Each entry below describes one raw file and shows an example.</p>
+<ul>
+<li><strong><code>*-CGM.csv</code></strong>: CGM data.</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>cgm)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>          Device Type Serial Number Description     Event Date Time</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="dv">1</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span>         EGV <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">33</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="dv">2</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span>         EGV <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">09</span><span class="sc">:</span><span class="dv">32</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="dv">3</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span>         EGV <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">33</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="dv">4</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span>         EGV <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">19</span><span class="sc">:</span><span class="dv">33</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="dv">5</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span>         EGV <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">33</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="dv">6</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span>         EGV <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">29</span><span class="sc">:</span><span class="dv">33</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="fu">Readings</span> (mg<span class="sc">/</span>dL)</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="dv">1</span>              <span class="dv">131</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="dv">2</span>              <span class="dv">126</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="dv">3</span>              <span class="dv">125</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="dv">4</span>              <span class="dv">120</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="dv">5</span>              <span class="dv">116</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="dv">6</span>              <span class="dv">111</span></span></code></pre></div>
+<ul>
+<li><strong><code>*-Basal-doses.csv</code></strong>: the basal insulin
+dose commanded at each event. Tandem reports doses rather than rates and
+gives no explicit duration, so <code>aidR</code> derives the duration of
+each entry from the gap to the following one and converts the dose into
+a rate in U/h.</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>basal)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>          Device Type Serial Number     Event Date Time</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="dv">1</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">04</span><span class="sc">:</span><span class="dv">04</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="dv">2</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">09</span><span class="sc">:</span><span class="dv">03</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="dv">3</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">14</span><span class="sc">:</span><span class="dv">04</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="dv">4</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">19</span><span class="sc">:</span><span class="dv">04</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="dv">5</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">04</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="dv">6</span> ⁦Tandem Mobi™⁩ System       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="dv">00</span><span class="sc">:</span><span class="dv">29</span><span class="sc">:</span><span class="dv">05</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  Commanded Basal <span class="fu">Dose</span> (units of insulin)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="dv">1</span>                                   <span class="fl">0.028</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="dv">2</span>                                   <span class="fl">0.041</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="dv">3</span>                                   <span class="fl">0.102</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="dv">4</span>                                   <span class="fl">0.139</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="dv">5</span>                                   <span class="fl">0.139</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="dv">6</span>                                   <span class="fl">0.139</span></span></code></pre></div>
+<ul>
+<li><strong><code>*-Bolus.csv</code></strong>: insulin boluses,
+including the bolus type and delivery method, the entered carbohydrate
+amount, the food and correction components, and the completion
+status.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>bolus)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>   Type        Bolus Type Bolus Delivery Method <span class="fu">BG</span> (mg<span class="sc">/</span>dL) Serial Number</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="dv">1</span> Bolus Food <span class="sc">/</span> Correction              Standard        <span class="dv">158</span>       <span class="dv">1111111</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="dv">2</span> Bolus Food <span class="sc">/</span> Correction              Standard        <span class="dv">159</span>       <span class="dv">1111111</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="dv">3</span> Bolus Food <span class="sc">/</span> Correction              Standard        <span class="dv">177</span>       <span class="dv">1111111</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  Completion Date Time Insulin Delivered Food Delivered Correction Delivered</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="dv">1</span>  <span class="dv">2026-03-05</span> <span class="dv">04</span><span class="sc">:</span><span class="dv">51</span><span class="sc">:</span><span class="dv">44</span>              <span class="fl">2.48</span>           <span class="fl">1.89</span>                 <span class="fl">0.59</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="dv">2</span>  <span class="dv">2026-03-05</span> <span class="dv">08</span><span class="sc">:</span><span class="dv">02</span><span class="sc">:</span><span class="dv">13</span>              <span class="fl">2.96</span>           <span class="fl">1.78</span>                 <span class="fl">1.18</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="dv">3</span>  <span class="dv">2026-03-05</span> <span class="dv">12</span><span class="sc">:</span><span class="dv">24</span><span class="sc">:</span><span class="dv">41</span>              <span class="fl">1.81</span>           <span class="fl">1.67</span>                 <span class="fl">0.14</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  Completion Status Desc Bolex Start Date Time Bolex Completion Date Time</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="dv">1</span>              Completed                    <span class="cn">NA</span>                         <span class="cn">NA</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="dv">2</span>              Completed                    <span class="cn">NA</span>                         <span class="cn">NA</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="dv">3</span>              Completed                    <span class="cn">NA</span>                         <span class="cn">NA</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  Bolex Insulin Delivered Bolex Completion Status Desc Standard Percent</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="dv">1</span>                      <span class="cn">NA</span>                           <span class="cn">NA</span>              <span class="dv">100</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="dv">2</span>                      <span class="cn">NA</span>                           <span class="cn">NA</span>              <span class="dv">100</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="dv">3</span>                      <span class="cn">NA</span>                           <span class="cn">NA</span>              <span class="dv">100</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="fu">Duration</span> (mins) Carb Size Target <span class="fu">BG</span> (mg<span class="sc">/</span>dL) Correction Factor Carb Ratio</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="dv">1</span>               <span class="dv">0</span>        <span class="dv">17</span>                 <span class="dv">0</span>                 <span class="dv">0</span>          <span class="dv">0</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="dv">2</span>               <span class="dv">0</span>        <span class="dv">16</span>                 <span class="dv">0</span>                 <span class="dv">0</span>          <span class="dv">0</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="dv">3</span>               <span class="dv">0</span>        <span class="dv">15</span>                 <span class="dv">0</span>                 <span class="dv">0</span>          <span class="dv">0</span></span></code></pre></div>
+<ul>
+<li><strong><code>*-BG.csv</code></strong>: self-monitored blood glucose
+(SMBG).</li>
+</ul>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>SMBG)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="cn">NULL</span></span></code></pre></div>
+<ul>
+<li><strong><code>*-Hourly-basal-delivery.csv</code></strong>: basal
+insulin aggregated per hour, with one column per hour of the day (the
+hours are named either <code>12 AM</code> … <code>11 PM</code> or
+<code>00</code> … <code>23</code>, depending on the export). This
+aggregated file is not used to build the cleaned <code>basal</code>,
+which is derived from <code>*-Basal-doses.csv</code> instead; it is used
+for <code>total_basal</code>.</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">head</span>(data<span class="sc">$</span>hourly_basal)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  Serial Number Event Date <span class="dv">12</span> AM  <span class="dv">1</span> AM <span class="dv">2</span> AM  <span class="dv">3</span> AM  <span class="dv">4</span> AM  <span class="dv">5</span> AM  <span class="dv">6</span> AM  <span class="dv">7</span> AM  <span class="dv">8</span> AM</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="dv">1</span>       <span class="dv">1111111</span> <span class="dv">2026-03-05</span> <span class="fl">1.037</span> <span class="fl">0.968</span> <span class="fl">0.57</span> <span class="fl">0.811</span> <span class="fl">0.707</span> <span class="fl">0.241</span> <span class="fl">0.114</span> <span class="fl">0.338</span> <span class="fl">0.732</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="dv">9</span> AM <span class="dv">10</span> AM <span class="dv">11</span> AM <span class="dv">12</span> PM  <span class="dv">1</span> PM  <span class="dv">2</span> PM  <span class="dv">3</span> PM  <span class="dv">4</span> PM  <span class="dv">5</span> PM  <span class="dv">6</span> PM  <span class="dv">7</span> PM  <span class="dv">8</span> PM <span class="dv">9</span> PM</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="dv">1</span> <span class="fl">0.61</span> <span class="fl">1.093</span> <span class="fl">0.684</span> <span class="fl">0.684</span> <span class="fl">1.162</span> <span class="fl">1.057</span> <span class="fl">0.518</span> <span class="fl">0.372</span> <span class="fl">0.114</span> <span class="fl">1.175</span> <span class="fl">0.817</span> <span class="fl">1.254</span> <span class="fl">0.57</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="dv">10</span> PM <span class="dv">11</span> PM</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="dv">1</span> <span class="fl">0.457</span> <span class="fl">0.376</span></span></code></pre></div>
+</div>
+<div id="cleaning-files" class="section level2">
+<h2>Cleaning files</h2>
+<p>When <code>parse_data</code> is run with <code>clean = TRUE</code>,
+the cleaned data types are built from the following raw files and
+attributes:</p>
+<table>
+<colgroup>
+<col width="25%" />
+<col width="49%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cleaned data type</th>
+<th>Used files</th>
+<th>Used attributes from <code>clean = FALSE</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>cgm</td>
+<td>*-CGM.csv</td>
+<td><code>data$cgm</code></td>
+</tr>
+<tr class="even">
+<td>basal</td>
+<td>*-Basal-doses.csv</td>
+<td><code>data$basal</code></td>
+</tr>
+<tr class="odd">
+<td>bolus</td>
+<td>*-Bolus.csv</td>
+<td><code>data$bolus</code></td>
+</tr>
+<tr class="even">
+<td>carbs</td>
+<td>*-Bolus.csv</td>
+<td><code>data$bolus</code></td>
+</tr>
+<tr class="odd">
+<td>SMBG</td>
+<td>*-BG.csv</td>
+<td><code>data$bg</code></td>
+</tr>
+<tr class="even">
+<td>total_basal</td>
+<td>*-Hourly-basal-delivery.csv</td>
+<td><code>data$hourly_basal</code></td>
+</tr>
+<tr class="odd">
+<td>total_bolus</td>
+<td>*-Bolus.csv</td>
+<td><code>data$bolus</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="notes" class="section level2">
+<h2>Notes</h2>
+<ul>
+<li>CGM and SMBG values are reported in mg/dL or mmol/L depending on the
+account settings; <code>aidR</code> converts them to mg/dL
+automatically.</li>
+<li><code>timezone_offset</code> is always <code>NA</code>, since Tandem
+Source exports report only local (wall-clock) time.</li>
+<li>The device type is stored as <code>pump_name</code> for insulin data
+and <code>sensor_name</code> for glucose data.</li>
+<li>The hourly basal file reports the basal insulin delivered in each
+hour of the day, one row per day and one column per hour.
+<code>aidR</code> sums the 24 hourly columns into
+<code>total_basal</code>, which therefore carries
+<code>source = &quot;reported&quot;</code>. <code>total_bolus</code>, in contrast,
+is summed from the cleaned <code>bolus</code> data and carries
+<code>source = &quot;summed&quot;</code>.</li>
+<li>Because basal durations are inferred from consecutive timestamps,
+the final basal entry of an export has no successor and its duration is
+therefore unknown.</li>
+<li>Each row of the bolus file holds a bolus together with the
+carbohydrates entered for it, so <code>bolus</code> and
+<code>carbs</code> are linked by <code>link_id</code>. Boluses without
+carbohydrates have <code>link_id = NA</code>.</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

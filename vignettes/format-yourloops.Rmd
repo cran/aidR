@@ -1,0 +1,100 @@
+---
+title: "aidR: YourLoops export format"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{aidR: YourLoops export format}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+```{r setup, message = FALSE}
+library(aidR)
+```
+```{r, include=FALSE}
+path <- system.file("extdata", "yourloops_example.zip", package = "aidR")
+tmpdir <- file.path(tempdir(), "yourloops_example")
+unzip(path, exdir = tmpdir)
+files <- list.files(tmpdir, recursive = TRUE)
+```
+## Overview
+
+A YourLoops export is a folder (possibly zipped) containing CSV files for several data types:
+```{r, comment = "", echo = FALSE}
+basename(files) # removes yourloops_example/ prefix
+```
+The column headers are always in English, regardless of the user's account language. Timestamps are given in UTC alongside a separate timezone offset in minutes, so recovering local (wall-clock) time requires combining the two. This example shows a file containing CGM data:
+```{r, comment = "", echo = FALSE}
+writeLines(readLines(file.path(tmpdir, files[4]), n = 10))
+```
+## How aidR detects this format
+
+Because YourLoops headers are language-independent, `aidR` identifies each file by matching its column names exactly against a lookup of the expected headers for each data type.
+
+## Files and the data types they produce
+
+To inspect the raw files, we parse the export with `clean = FALSE`, which returns the full information provided by YourLoops:
+```{r}
+data <- parse_data(id = "1", paths = path, clean = FALSE)
+```
+Each entry below describes one raw file and shows an example.
+
+- **`cbg.csv`**: CGM data.
+```{r, comment=""}
+head(data$cgm)
+```
+- **`basal.csv`**: basal rates, including the delivery type and the duration (given in milliseconds).
+```{r, comment=""}
+head(data$basal)
+```
+- **`bolus.csv`**: insulin boluses, including a flag whether a bolus was biphasic or not.
+```{r, comment=""}
+head(data$bolus)
+```
+- **`meals.csv`**: carbohydrate intake communicated to the bolus calculator.
+```{r, comment=""}
+head(data$meals)
+```
+- **`rescuecarbs.csv`**: carbohydrates taken to treat a hypoglycaemic event.
+```{r, comment=""}
+head(data$rescuecarbs)
+```
+- **`alarms.csv`**: alarms raised by the loop or the pump, with code and acknowledgement status.
+```{r, comment=""}
+head(data$alarms)
+```
+- **`physicalActivities.csv`**: self-reported physical activity, with duration and reported intensity. Often sparse or missing entirely.
+```{r, comment=""}
+head(data$physicalActivities)
+```
+- **`settings-cgm.csv`**, **`settings-pump.csv`**, **`settings-device.csv`**, **`settings-current-parameters.csv`**, **`settings-security-basals.csv`**: the CGM, pump, smartphone, loop-parameter, and security-basal configuration.
+```{r, comment=""}
+head(data$settings_pump)
+```
+Note that a YourLoops export contains **no SMBG data**; `cgm`, `basal`, `bolus`, and `carbs` are the core data types available from this platform.
+
+## Cleaning files
+
+When `parse_data` is run with `clean = TRUE`, the cleaned data types are built from the following raw files and attributes:
+
+| Cleaned data type | Used files                      | Used attributes from `clean = FALSE`|
+|-------------------|---------------------------------|-------------------------------------|
+| `cgm`             | `cbg.csv`                       | `data$cgm`                          |
+| `basal`           | `basal.csv`                     | `data$basal`                        |
+| `bolus`           | `bolus.csv`                     | `data$bolus`                        |
+| `carbs`           | `meals.csv`, `rescuecarbs.csv`  | `data$meals`, `data$rescuecarbs`    |
+| `total_basal`     | `basal.csv`                     | `data$basal`                        |
+| `total_bolus`     | `bolus.csv`                     | `data$bolus`                        |
+
+## Notes
+
+- CGM values are reported in mg/dL or mmol/L depending on the account settings; `aidR` converts them to mg/dL automatically.
+- When `clean = FALSE`, timestamps are reported exactly as in the file: the `timestamp` column is in UTC and the `timezoneOffSet` column gives the offset, so local (wall-clock) time is obtained by adding the two.
+- When `clean = TRUE`, for consistency with the other formats the `timestamp` column instead holds local (wall-clock) time, while `timezoneOffSet` remains the same offset. UTC time can therefore be recovered by `UTC = timestamp - timezoneOffSet`.
+- YourLoops reports no daily insulin aggregate, so `total_basal` and `total_bolus` are summed from the cleaned `basal` and `bolus` data and carry `source = "summed"`.
+- Biphasic (dual-wave) boluses are exported as two separate rows rather than one combined event. `aidR` keeps them separate but flags them, so they can be recombined if needed.
+- `link_id` is always `NA` for `bolus` and `carbs`: the export does not record which carbohydrate entry triggered which bolus. Matching them by timestamp and amount is not implemented.
